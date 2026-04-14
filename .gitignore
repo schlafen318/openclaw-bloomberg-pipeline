@@ -1,0 +1,11 @@
+# Stateful files that live on the Windows laptop — never commit these
+bbg_tickers.json
+data_requests.json
+staging/
+__pycache__/
+*.pyc
+*.log
+
+# OS cruft
+.DS_Store
+Thumbs.db
