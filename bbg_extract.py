@@ -66,7 +66,7 @@ def batch_bdp(tickers, fields, batch_size=20, **kwargs):
 
 def extract_market_data(config):
     """Current prices, returns, volatility, short interest."""
-    print("\n📊 Extracting market data...")
+    print("\nExtracting market data...")
     tickers = get_all_tickers(config)
     
     fields = [
@@ -300,9 +300,9 @@ def merge_data_requests(config):
     # --- Write back --------------------------------------------------
     touched = bool(added or removed or pending_removals)
     if added:
-        print(f"  📥 Added {len(added)} tickers from data requests: {added}")
+        print(f"  [+] Added {len(added)} tickers from data requests: {added}")
     if removed:
-        print(f"  🗑  Removed {len(removed)} tickers from extraction: {removed}")
+        print(f"  [-] Removed {len(removed)} tickers from extraction: {removed}")
 
     if touched:
         # Drain both pending lists — leave only the requests whose
@@ -340,7 +340,7 @@ def main():
         extract_fundamentals(config)
         extract_valuation(config)
     
-    print(f"\n✅ Done! Files saved to {STAGING_DIR / TODAY}")
+    print(f"\nDone! Files saved to {STAGING_DIR / TODAY}")
     print(f"Next step: python bbg_upload.py")
 
 
