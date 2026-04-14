@@ -31,23 +31,28 @@ set LOG_FILE=%RUN_DIR%\sync.log
 echo. >> "%LOG_FILE%"
 echo ==================================================== >> "%LOG_FILE%"
 echo [%date% %time%] bloomberg-sync starting >> "%LOG_FILE%"
+echo [bloomberg-sync] Starting...
 
 REM --- 1. Pull latest from git ---
 if not exist "%SRC_DIR%\.git" (
     echo ERROR: git clone not found at %SRC_DIR% >> "%LOG_FILE%"
+    echo ERROR: git clone not found at %SRC_DIR%
     echo Skipping sync; running pipeline with existing local files. >> "%LOG_FILE%"
     goto :run_pipeline
 )
 
 cd /d "%SRC_DIR%"
 echo [%date% %time%] git pull in %SRC_DIR% >> "%LOG_FILE%"
+echo [bloomberg-sync] Pulling latest from git...
 git pull --quiet >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
     echo WARNING: git pull failed ^(network^|auth^|conflict^); continuing with existing files >> "%LOG_FILE%"
+    echo WARNING: git pull failed; continuing with existing files
 )
 
 REM --- 2. Copy refreshed files into runtime folder ---
 echo [%date% %time%] syncing files to %RUN_DIR% >> "%LOG_FILE%"
+echo [bloomberg-sync] Syncing files...
 copy /Y "%SRC_DIR%\bbg_extract.py"   "%RUN_DIR%\bbg_extract.py"   >> "%LOG_FILE%" 2>&1
 copy /Y "%SRC_DIR%\bbg_upload.py"    "%RUN_DIR%\bbg_upload.py"    >> "%LOG_FILE%" 2>&1
 copy /Y "%SRC_DIR%\run_pipeline.bat" "%RUN_DIR%\run_pipeline.bat" >> "%LOG_FILE%" 2>&1
@@ -58,10 +63,28 @@ REM merge_data_requests on every run). Never sync from git.
 :run_pipeline
 REM --- 3. Run the refreshed pipeline ---
 echo [%date% %time%] calling run_pipeline.bat >> "%LOG_FILE%"
+echo [bloomberg-sync] Running pipeline...
 cd /d "%RUN_DIR%"
-call run_pipeline.bat >> "%LOG_FILE%" 2>&1
+
+REM Run pipeline, capture output to temp file, show on screen AND log
+set TEMP_OUT=%TEMP%\pipeline_out_%RANDOM%.txt
+call run_pipeline.bat > "%TEMP_OUT%" 2>&1
 set EXIT_CODE=%errorlevel%
 
+REM Show output on screen
+type "%TEMP_OUT%"
+REM Append to log
+type "%TEMP_OUT%" >> "%LOG_FILE%"
+del "%TEMP_OUT%" 2>nul
+
 echo [%date% %time%] pipeline exited with code %EXIT_CODE% >> "%LOG_FILE%"
+
+if %EXIT_CODE% neq 0 (
+    echo.
+    echo ERROR: Pipeline failed with exit code %EXIT_CODE%
+    echo See %LOG_FILE% for details.
+) else (
+    echo [bloomberg-sync] Done.
+)
 
 endlocal & exit /b %EXIT_CODE%
