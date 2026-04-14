@@ -86,7 +86,7 @@ def extract_market_data(config):
 
 def extract_fundamentals(config):
     """Revenue, earnings, margins, returns, cash flow."""
-    print("\n📈 Extracting fundamentals...")
+    print("\nExtracting fundamentals...")
     tickers = get_equity_tickers(config)
     
     fields = [
@@ -107,7 +107,7 @@ def extract_fundamentals(config):
 
 def extract_estimates(config):
     """Consensus estimates: EPS, revenue, target prices."""
-    print("\n🎯 Extracting estimates...")
+    print("\nExtracting estimates...")
     tickers = get_equity_tickers(config)
     
     all_estimates = []
@@ -154,7 +154,7 @@ def extract_estimates(config):
 
 def extract_valuation(config):
     """Current and historical valuation multiples."""
-    print("\n💰 Extracting valuation...")
+    print("\nExtracting valuation...")
     tickers = get_equity_tickers(config)
     
     # Static valuation fields (no period override needed)
@@ -193,7 +193,7 @@ def extract_valuation(config):
 
 def extract_credit(config):
     """Credit market data for risk monitoring."""
-    print("\n🏦 Extracting credit data...")
+    print("\nExtracting credit data...")
     credit_tickers = [t["bbg_ticker"] for t in config.get("macro", [])
                       if t["ticker"] in ("BKLN", "HYG", "TLT", "VIX", "DXY", "GC1", "HG1")]
     
