@@ -15,5 +15,3 @@ python bbg_upload.py
 
 echo.
 echo Done!
-echo.
-pause
