@@ -49,27 +49,80 @@ and single-source-of-truth**.
 
 ## Deployment on Windows (first time)
 
-1. Clone this repo somewhere stable, e.g. `C:\Users\stephanie.leung\bloomberg-pipeline-src\`
-2. Copy `bbg_extract.py`, `bbg_upload.py`, `run_pipeline.bat` into
-   `C:\Users\stephanie.leung\bloomberg-pipeline\` (next to your existing
-   `bbg_tickers.json` — **do NOT overwrite that file**)
-3. Schedule `run_pipeline.bat` in Windows Task Scheduler to run at 06:00
-   HKT daily (or 22:00 UTC, depending on your timezone setting)
+### One-time setup
 
-## Deployment on Windows (updates)
+1. **Clone this repo** somewhere stable:
+   ```
+   cd C:\Users\stephanie.leung
+   git clone https://github.com/schlafen318/openclaw-bloomberg-pipeline.git bloomberg-pipeline-src
+   ```
+   If this is a private repo, git-for-windows will prompt for a
+   personal access token the first time. Git Credential Manager caches
+   it so future pulls are silent.
 
-When new versions of any file land in this repo:
+2. **Copy the wrapper out of the git clone**:
+   ```
+   copy bloomberg-pipeline-src\bloomberg-sync.bat  bloomberg-sync.bat
+   ```
+   The wrapper lives at `C:\Users\stephanie.leung\bloomberg-sync.bat`,
+   **outside** the git clone. This is deliberate — it's the thing that
+   git-pulls the rest, so it can't be in the thing it pulls (risk of
+   the file getting overwritten mid-execution).
+
+3. **First-run bootstrap**: copy the runtime files into place for the
+   first time. The wrapper will keep them in sync from now on:
+   ```
+   cd bloomberg-pipeline-src
+   copy /Y bbg_extract.py   ..\bloomberg-pipeline\bbg_extract.py
+   copy /Y bbg_upload.py    ..\bloomberg-pipeline\bbg_upload.py
+   copy /Y run_pipeline.bat ..\bloomberg-pipeline\run_pipeline.bat
+   ```
+   **Never copy `bbg_tickers.json`** — it stays local and stateful, and
+   it's already in `.gitignore` so git can't touch it anyway.
+
+4. **Re-point Windows Task Scheduler**: your existing trigger probably
+   runs `bloomberg-pipeline\run_pipeline.bat` at 06:00 HKT. Edit the
+   trigger so it runs `C:\Users\stephanie.leung\bloomberg-sync.bat`
+   instead. Leave the schedule (06:00 HKT daily) unchanged.
+
+### How updates work after setup
+
+Any push to this repo's `main` branch automatically rolls out to Windows
+on the next scheduled 06:00 HKT run:
 
 ```
-cd C:\Users\stephanie.leung\bloomberg-pipeline-src
-git pull
-copy bbg_extract.py ..\bloomberg-pipeline\bbg_extract.py
-copy bbg_upload.py ..\bloomberg-pipeline\bbg_upload.py
-copy run_pipeline.bat ..\bloomberg-pipeline\run_pipeline.bat
+[Mac]   git push origin main
+[06:00] Windows scheduler fires bloomberg-sync.bat
+        → git pull (fast-forwards to new HEAD)
+        → copies .py and .bat files into bloomberg-pipeline\
+        → calls run_pipeline.bat
+        → bbg_extract.py runs with new code, pulls data, uploads
 ```
 
-**Never overwrite `bbg_tickers.json`** — that file is stateful and gets
-mutated by `merge_data_requests()` on every run.
+No manual action on the Windows machine unless:
+- The git clone breaks (auth expiry, disk issue)
+- You want to roll out a fix *before* the next 06:00 run (manually
+  double-click `bloomberg-sync.bat`)
+- You edit `bbg_tickers.json` by hand for the hand-curated `macro`
+  section
+
+### Sync logs
+
+`bloomberg-sync.bat` appends to `C:\Users\stephanie.leung\bloomberg-pipeline\sync.log`
+with timestamps, git pull output, copy results, and the pipeline exit
+code. Check this file if a run looks weird. Rotate it manually if it
+ever gets large (probably years from now — each run is ~10 lines).
+
+## Deployment on Windows (manual updates)
+
+**Only needed if you want to roll out a fix before the next 06:00 run.**
+
+From any shell on Windows:
+```
+bloomberg-sync.bat
+```
+
+That's it. Same logic runs interactively.
 
 ## Prerequisites on the Windows laptop
 
