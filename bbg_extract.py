@@ -326,7 +326,7 @@ def main():
 
     config = load_config()
     config = merge_data_requests(config)
-    print(f"Bloomberg Data Extraction — {TODAY}")
+    print(f"Bloomberg Data Extraction - {TODAY}")
     print(f"Portfolio: {len(config['portfolio'])} tickers")
     print(f"Watchlist: {len(config.get('watchlist', []))} tickers")
     print(f"Macro: {len(config.get('macro', []))} tickers")
