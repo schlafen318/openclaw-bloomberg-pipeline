@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 STAGING_DIR = Path(__file__).parent / "staging"
-DRIVE_DIR = Path(r"H:\My Drive\Steph-PA\notes\personal-portfolio\bloomberg")
+DRIVE_DIR = Path(r"H:\My Drive\bloomberg")
 TODAY = datetime.now().strftime("%Y-%m-%d")
 
 def main():

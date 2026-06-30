@@ -26,7 +26,7 @@ and single-source-of-truth**.
 | File | Purpose |
 |---|---|
 | `bbg_extract.py` | Pulls market_data, fundamentals, estimates, valuation, credit_macro from Bloomberg via xbbg. Calls `merge_data_requests()` to drain pending adds/removes from `data_requests.json` on each run. |
-| `bbg_upload.py` | Moves staging CSVs from `C:\Users\stephanie.leung\bloomberg-pipeline\staging\YYYY-MM-DD\` to the Drive-synced folder `H:\My Drive\Steph-PA\notes\personal-portfolio\bloomberg\YYYY-MM-DD\`. |
+| `bbg_upload.py` | Moves staging CSVs from `C:\Users\stephanie.leung\bloomberg-pipeline\staging\YYYY-MM-DD\` to the Drive-synced folder `H:\My Drive\bloomberg\YYYY-MM-DD\`. |
 | `run_pipeline.bat` | One-shot batch file that runs extract → upload. Wired to Windows Task Scheduler for 06:00 HKT daily execution. |
 | `bbg_tickers.json` | Ticker config the extract script reads. NOT in this repo — stays on the Windows laptop, managed by `merge_data_requests` via `data_requests.json` on Drive. |
 
@@ -130,7 +130,7 @@ That's it. Same logic runs interactively.
 - `blpapi` + `xbbg` (Bloomberg Python SDK + wrapper)
 - `pandas`
 - A logged-in Bloomberg Terminal session (xbbg connects via the local `bbcomm.exe`)
-- Google Drive for Desktop mounted at `H:\` with Steph-PA visible
+- Google Drive for Desktop mounted at `H:\` with `bloomberg/` visible
 - `bbg_tickers.json` already present in `C:\Users\stephanie.leung\bloomberg-pipeline\`
 
 ## Sync model

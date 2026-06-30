@@ -225,7 +225,7 @@ def merge_data_requests(config):
     """
     requests_path = SCRIPT_DIR / "data_requests.json"
     # Also check Drive-synced location
-    drive_requests = Path(r"H:\My Drive\Steph-PA\notes\personal-portfolio\bloomberg\data_requests.json")
+    drive_requests = Path(r"H:\My Drive\bloomberg\data_requests.json")
 
     req_file = None
     for p in [requests_path, drive_requests]:
