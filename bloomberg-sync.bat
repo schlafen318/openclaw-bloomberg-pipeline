@@ -33,6 +33,24 @@ echo ==================================================== >> "%LOG_FILE%"
 echo [%date% %time%] bloomberg-sync starting >> "%LOG_FILE%"
 echo [bloomberg-sync] Starting...
 
+REM --- 0. Reconnect WiFi and wait for network (handles wake-from-sleep) ---
+echo [%date% %time%] reconnecting WiFi >> "%LOG_FILE%"
+netsh wlan connect name="WeWork" >> "%LOG_FILE%" 2>&1
+set NET_RETRIES=0
+:wait_net
+ping -n 1 8.8.8.8 >nul 2>&1
+if %errorlevel%==0 goto :net_ok
+set /a NET_RETRIES+=1
+if %NET_RETRIES% geq 24 (
+    echo ERROR: no network after 2 minutes >> "%LOG_FILE%"
+    echo ERROR: no network after 2 minutes
+    endlocal & exit /b 1
+)
+timeout /t 5 /nobreak >nul
+goto :wait_net
+:net_ok
+echo [%date% %time%] network ready ^(after %NET_RETRIES% retries^) >> "%LOG_FILE%"
+
 REM --- 1. Pull latest from git ---
 if not exist "%SRC_DIR%\.git" (
     echo ERROR: git clone not found at %SRC_DIR% >> "%LOG_FILE%"
@@ -45,10 +63,26 @@ cd /d "%SRC_DIR%"
 echo [%date% %time%] git pull in %SRC_DIR% >> "%LOG_FILE%"
 echo [bloomberg-sync] Pulling latest from git...
 git pull --quiet >> "%LOG_FILE%" 2>&1
-if errorlevel 1 (
+set GIT_EXIT=%errorlevel%
+if %GIT_EXIT% neq 0 (
     echo WARNING: git pull failed ^(network^|auth^|conflict^); continuing with existing files >> "%LOG_FILE%"
     echo WARNING: git pull failed; continuing with existing files
 )
+
+REM Record the current HEAD sha and last-sync timestamp to a status
+REM file that gets uploaded to Drive alongside the BBG extraction.
+REM The Mac-side bbg_daily_check.py reads this file and alerts loudly
+REM if the sync has been broken for >2 days.
+for /f "delims=" %%s in ('git -C "%SRC_DIR%" rev-parse --short HEAD 2^>nul') do set GIT_HEAD=%%s
+if "%GIT_HEAD%"=="" set GIT_HEAD=unknown
+set STATUS_FILE=%RUN_DIR%\sync_status.json
+> "%STATUS_FILE%" echo {
+>> "%STATUS_FILE%" echo   "last_sync_utc": "%date:~10,4%-%date:~4,2%-%date:~7,2%T%time:~0,2%:%time:~3,2%:%time:~6,2%Z",
+>> "%STATUS_FILE%" echo   "git_head": "%GIT_HEAD%",
+>> "%STATUS_FILE%" echo   "git_pull_exit": %GIT_EXIT%,
+>> "%STATUS_FILE%" echo   "run_dir": "%RUN_DIR:\=/%",
+>> "%STATUS_FILE%" echo   "wrapper_version": "2"
+>> "%STATUS_FILE%" echo }
 
 REM --- 2. Copy refreshed files into runtime folder ---
 echo [%date% %time%] syncing files to %RUN_DIR% >> "%LOG_FILE%"
